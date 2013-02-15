@@ -1,0 +1,278 @@
+/*
+** mrb_capability - Linux Capability class for mruby
+**
+** Copyright (c) mod_mruby developers 2012-
+**
+** Permission is hereby granted, free of charge, to any person obtaining
+** a copy of this software and associated documentation files (the
+** "Software"), to deal in the Software without restriction, including
+** without limitation the rights to use, copy, modify, merge, publish,
+** distribute, sublicense, and/or sell copies of the Software, and to
+** permit persons to whom the Software is furnished to do so, subject to
+** the following conditions:
+**
+** The above copyright notice and this permission notice shall be
+** included in all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+** EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+** MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+** IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+** CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+** SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+**
+** [ MIT license: http://www.opensource.org/licenses/mit-license.php ]
+*/
+
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/prctl.h>
+#include <sys/capability.h>
+
+#include "mruby.h"
+#include "mruby/variable.h"
+#include "mruby/data.h"
+#include "mruby/string.h"
+#include "mruby/array.h"
+
+
+#define CAP_NUM 38
+#define DONE    mrb_gc_arena_restore(mrb, 0);
+
+typedef struct {
+    cap_t cap;
+    cap_value_t capval[CAP_NUM];
+} mrb_cap_context;
+
+static void mrb_cap_context_free(mrb_state *mrb, void *p)
+{
+    mrb_cap_context *ctx = (mrb_cap_context *)p;
+    cap_free(ctx->cap);
+}
+
+static const struct mrb_data_type mrb_cap_context_type = {
+    "mrb_cap_context", mrb_cap_context_free,
+};
+
+static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, char *ctx_flag)
+{
+    mrb_cap_context *c;
+    mrb_value context;
+
+    context = mrb_iv_get(mrb, self, mrb_intern(mrb, ctx_flag));
+    Data_Get_Struct(mrb, context, &mrb_cap_context_type, c);
+    if (!c)
+        mrb_raise(mrb, E_RUNTIME_ERROR, "get mrb_cap_context failed");
+
+    return c;
+}
+
+mrb_value mrb_cap_init(mrb_state *mrb, mrb_value self)
+{
+    mrb_cap_context *cap_ctx = (mrb_cap_context *)malloc(sizeof(mrb_cap_context));
+
+    prctl(PR_SET_KEEPCAPS, 1);
+    cap_ctx->cap = cap_init();
+
+    mrb_iv_set(mrb
+        , self
+        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_obj_value(Data_Wrap_Struct(mrb
+            , mrb->object_class
+            , &mrb_cap_context_type
+            , (void *)cap_ctx)
+        )
+    );
+
+    return self;
+}
+
+mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
+{
+    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+
+    int i;
+    mrb_value ary;
+    mrb_int identify;
+
+    mrb_get_args(mrb, "iA", &identify, &ary);
+    struct RArray *a = mrb_ary_ptr(ary);
+    int ncap = a->len;
+
+    for (i = 0; i < ncap; i++) {
+        cap_ctx->capval[i] = (cap_value_t)mrb_fixnum(a->ptr[i]);
+    }
+
+    cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, CAP_SET);
+    if (cap_set_proc(cap_ctx->cap) != 0)
+        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed");
+
+    mrb_iv_set(mrb
+        , self
+        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_obj_value(Data_Wrap_Struct(mrb
+            , mrb->object_class
+            , &mrb_cap_context_type
+            , (void *)cap_ctx)
+        )
+    );
+
+    return self;
+}
+ 
+mrb_value mrb_cap_get(mrb_state *mrb, mrb_value self)
+{
+    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+
+    cap_ctx->cap = cap_get_proc();
+
+    mrb_iv_set(mrb
+        , self
+        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_obj_value(Data_Wrap_Struct(mrb
+            , mrb->object_class
+            , &mrb_cap_context_type
+            , (void *)cap_ctx)
+        )
+    );
+
+    return self;
+}
+
+mrb_value mrb_cap_clear(mrb_state *mrb, mrb_value self)
+{
+    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+
+    int i;
+    mrb_value ary;
+    mrb_int identify;
+
+    mrb_get_args(mrb, "iA", &identify, &ary);
+    struct RArray *a = mrb_ary_ptr(ary);
+    int ncap = a->len;
+
+    for (i = 0; i < ncap; i++) {
+        cap_ctx->capval[i] = (cap_value_t)mrb_fixnum(a->ptr[i]);
+    }
+
+    cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, CAP_CLEAR);
+    if (cap_set_proc(cap_ctx->cap) != 0)
+        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed");
+
+    mrb_iv_set(mrb
+        , self
+        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_obj_value(Data_Wrap_Struct(mrb
+            , mrb->object_class
+            , &mrb_cap_context_type
+            , (void *)cap_ctx)
+        )
+    );
+
+    return self;
+}
+
+mrb_value mrb_cap_set_flag(mrb_state *mrb, mrb_value self)
+{
+    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+
+    int i;
+    mrb_value ary;
+    mrb_int identify;
+    mrb_int state;
+
+    mrb_get_args(mrb, "iAi", &identify, &ary, &state);
+    struct RArray *a = mrb_ary_ptr(ary);
+    int ncap = a->len;
+
+    for (i = 0; i < ncap; i++) {
+        cap_ctx->capval[i] = (cap_value_t)mrb_fixnum(a->ptr[i]);
+    }
+
+    cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, state);
+    if (cap_set_proc(cap_ctx->cap) != 0)
+        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed");
+
+    mrb_iv_set(mrb
+        , self
+        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_obj_value(Data_Wrap_Struct(mrb
+            , mrb->object_class
+            , &mrb_cap_context_type
+            , (void *)cap_ctx)
+        )
+    );
+
+    return self;
+}
+
+void mrb_mruby_capability_gem_init(mrb_state *mrb)
+{
+    struct RClass *capability;
+
+    capability = mrb_define_class(mrb, "Capability", mrb->object_class);
+
+    mrb_define_method(mrb, capability, "initialize",    mrb_cap_init,       ARGS_NONE());
+    mrb_define_method(mrb, capability, "get",           mrb_cap_get,        ARGS_NONE());
+    mrb_define_method(mrb, capability, "get_proc",      mrb_cap_get,        ARGS_NONE());
+    mrb_define_method(mrb, capability, "set",           mrb_cap_set,        ARGS_ANY());
+    mrb_define_method(mrb, capability, "set_proc",      mrb_cap_set,        ARGS_ANY());
+    mrb_define_method(mrb, capability, "clear",         mrb_cap_clear,      ARGS_ANY());
+    mrb_define_method(mrb, capability, "unset",         mrb_cap_clear,      ARGS_ANY());
+    mrb_define_method(mrb, capability, "set_flag",      mrb_cap_set_flag,   ARGS_ANY());
+
+    mrb_define_const(mrb, capability, "CAP_CLEAR",              mrb_fixnum_value(CAP_CLEAR));
+    mrb_define_const(mrb, capability, "CAP_SET",                mrb_fixnum_value(CAP_SET));
+
+    mrb_define_const(mrb, capability, "CAP_EFFECTIVE",          mrb_fixnum_value(CAP_EFFECTIVE));
+    mrb_define_const(mrb, capability, "CAP_PERMITTED",          mrb_fixnum_value(CAP_PERMITTED));
+    mrb_define_const(mrb, capability, "CAP_INHERITABLE",        mrb_fixnum_value(CAP_INHERITABLE));
+
+    mrb_define_const(mrb, capability, "CAP_CHOWN",              mrb_fixnum_value(CAP_CHOWN));
+    mrb_define_const(mrb, capability, "CAP_DAC_OVERRIDE",       mrb_fixnum_value(CAP_DAC_OVERRIDE));
+    mrb_define_const(mrb, capability, "CAP_DAC_READ_SEARCH",    mrb_fixnum_value(CAP_DAC_READ_SEARCH));
+    mrb_define_const(mrb, capability, "CAP_FOWNER",             mrb_fixnum_value(CAP_FOWNER));
+    mrb_define_const(mrb, capability, "CAP_FSETID",             mrb_fixnum_value(CAP_FSETID));
+    mrb_define_const(mrb, capability, "CAP_KILL",               mrb_fixnum_value(CAP_KILL));
+    mrb_define_const(mrb, capability, "CAP_SETGID",             mrb_fixnum_value(CAP_SETGID));
+    mrb_define_const(mrb, capability, "CAP_SETUID",             mrb_fixnum_value(CAP_SETUID));
+    mrb_define_const(mrb, capability, "CAP_SETPCAP",            mrb_fixnum_value(CAP_SETPCAP));
+    mrb_define_const(mrb, capability, "CAP_LINUX_IMMUTABLE",    mrb_fixnum_value(CAP_LINUX_IMMUTABLE));
+    mrb_define_const(mrb, capability, "CAP_NET_BIND_SERVICE",   mrb_fixnum_value(CAP_NET_BIND_SERVICE));
+    mrb_define_const(mrb, capability, "CAP_NET_BROADCAST",      mrb_fixnum_value(CAP_NET_BROADCAST));
+    mrb_define_const(mrb, capability, "CAP_NET_ADMIN",          mrb_fixnum_value(CAP_NET_ADMIN));
+    mrb_define_const(mrb, capability, "CAP_NET_RAW",            mrb_fixnum_value(CAP_NET_RAW));
+    mrb_define_const(mrb, capability, "CAP_IPC_LOCK",           mrb_fixnum_value(CAP_IPC_LOCK));
+    mrb_define_const(mrb, capability, "CAP_IPC_OWNER",          mrb_fixnum_value(CAP_IPC_OWNER));
+    mrb_define_const(mrb, capability, "CAP_SYS_MODULE",         mrb_fixnum_value(CAP_SYS_MODULE));
+    mrb_define_const(mrb, capability, "CAP_SYS_RAWIO",          mrb_fixnum_value(CAP_SYS_RAWIO));
+    mrb_define_const(mrb, capability, "CAP_SYS_CHROOT",         mrb_fixnum_value(CAP_SYS_CHROOT));
+    mrb_define_const(mrb, capability, "CAP_SYS_PTRACE",         mrb_fixnum_value(CAP_SYS_PTRACE));
+    mrb_define_const(mrb, capability, "CAP_SYS_PACCT",          mrb_fixnum_value(CAP_SYS_PACCT));
+    mrb_define_const(mrb, capability, "CAP_SYS_ADMIN",          mrb_fixnum_value(CAP_SYS_ADMIN));
+    mrb_define_const(mrb, capability, "CAP_SYS_BOOT",           mrb_fixnum_value(CAP_SYS_BOOT));
+    mrb_define_const(mrb, capability, "CAP_SYS_NICE",           mrb_fixnum_value(CAP_SYS_NICE));
+    mrb_define_const(mrb, capability, "CAP_SYS_RESOURCE",       mrb_fixnum_value(CAP_SYS_RESOURCE));
+    mrb_define_const(mrb, capability, "CAP_SYS_TIME",           mrb_fixnum_value(CAP_SYS_TIME));
+    mrb_define_const(mrb, capability, "CAP_SYS_TTY_CONFIG",     mrb_fixnum_value(CAP_SYS_TTY_CONFIG));
+    mrb_define_const(mrb, capability, "CAP_MKNOD",              mrb_fixnum_value(CAP_MKNOD));
+    mrb_define_const(mrb, capability, "CAP_LEASE",              mrb_fixnum_value(CAP_LEASE));
+    mrb_define_const(mrb, capability, "CAP_AUDIT_WRITE",        mrb_fixnum_value(CAP_AUDIT_WRITE));
+    mrb_define_const(mrb, capability, "CAP_AUDIT_CONTROL",      mrb_fixnum_value(CAP_AUDIT_CONTROL));
+    mrb_define_const(mrb, capability, "CAP_SETFCAP",            mrb_fixnum_value(CAP_SETFCAP));
+    mrb_define_const(mrb, capability, "CAP_MAC_OVERRIDE",       mrb_fixnum_value(CAP_MAC_OVERRIDE));
+    mrb_define_const(mrb, capability, "CAP_MAC_ADMIN",          mrb_fixnum_value(CAP_MAC_ADMIN));
+    mrb_define_const(mrb, capability, "CAP_SYSLOG",             mrb_fixnum_value(CAP_SYSLOG));
+    mrb_define_const(mrb, capability, "CAP_WAKE_ALARM",         mrb_fixnum_value(CAP_WAKE_ALARM));
+    mrb_define_const(mrb, capability, "CAP_BLOCK_SUSPEND",      mrb_fixnum_value(CAP_BLOCK_SUSPEND));
+    mrb_define_const(mrb, capability, "CAP_COMPROMISE_KERNEL",  mrb_fixnum_value(CAP_COMPROMISE_KERNEL));
+
+    DONE;
+}
+
+void mrb_mruby_capability_gem_final(mrb_state *mrb)
+{
+}
+
