@@ -208,6 +208,33 @@ mrb_value mrb_cap_set_flag(mrb_state *mrb, mrb_value self)
     return self;
 }
 
+// test
+mrb_value mrb_cap_setuid(mrb_state *mrb, mrb_value self)
+{
+    uid_t uid;
+    mrb_int argv;
+
+    mrb_get_args(mrb, "i", &argv);
+    uid = (uid_t)argv;
+
+    setuid(uid);
+
+    return self;
+}
+
+mrb_value mrb_cap_setgid(mrb_state *mrb, mrb_value self)
+{
+    uid_t gid;
+    mrb_int argv;
+
+    mrb_get_args(mrb, "i", &argv);
+    gid = (gid_t)argv;
+
+    setgid(gid);
+
+    return self;
+}
+
 void mrb_mruby_capability_gem_init(mrb_state *mrb)
 {
     struct RClass *capability;
@@ -222,6 +249,10 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     mrb_define_method(mrb, capability, "clear",         mrb_cap_clear,      ARGS_ANY());
     mrb_define_method(mrb, capability, "unset",         mrb_cap_clear,      ARGS_ANY());
     mrb_define_method(mrb, capability, "set_flag",      mrb_cap_set_flag,   ARGS_ANY());
+
+    // test
+    mrb_define_method(mrb, capability, "setuid",        mrb_cap_setuid,      ARGS_ANY());
+    mrb_define_method(mrb, capability, "setgid",        mrb_cap_setgid,      ARGS_ANY());
 
     mrb_define_const(mrb, capability, "CAP_CLEAR",              mrb_fixnum_value(CAP_CLEAR));
     mrb_define_const(mrb, capability, "CAP_SET",                mrb_fixnum_value(CAP_SET));
