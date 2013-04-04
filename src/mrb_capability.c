@@ -71,7 +71,7 @@ static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, cha
 
 mrb_value mrb_cap_init(mrb_state *mrb, mrb_value self)
 {
-    mrb_cap_context *cap_ctx = (mrb_cap_context *)malloc(sizeof(mrb_cap_context));
+    mrb_cap_context *cap_ctx = (mrb_cap_context *)mrb_malloc(mrb, sizeof(mrb_cap_context));
 
     prctl(PR_SET_KEEPCAPS, 1);
     cap_ctx->cap = cap_init();
