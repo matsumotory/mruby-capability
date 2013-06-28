@@ -107,7 +107,7 @@ mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
 
     cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, CAP_SET);
     if (cap_set_proc(cap_ctx->cap) != 0)
-        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed");
+        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on set");
 
     mrb_iv_set(mrb
         , self
@@ -159,7 +159,7 @@ mrb_value mrb_cap_clear(mrb_state *mrb, mrb_value self)
 
     cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, CAP_CLEAR);
     if (cap_set_proc(cap_ctx->cap) != 0)
-        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed");
+        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on clear");
 
     mrb_iv_set(mrb
         , self
@@ -193,7 +193,7 @@ mrb_value mrb_cap_set_flag(mrb_state *mrb, mrb_value self)
 
     cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, state);
     if (cap_set_proc(cap_ctx->cap) != 0)
-        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed");
+        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on set_flag");
 
     mrb_iv_set(mrb
         , self
@@ -292,13 +292,13 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     mrb_define_const(mrb, capability, "CAP_LEASE",              mrb_fixnum_value(CAP_LEASE));
     mrb_define_const(mrb, capability, "CAP_AUDIT_WRITE",        mrb_fixnum_value(CAP_AUDIT_WRITE));
     mrb_define_const(mrb, capability, "CAP_AUDIT_CONTROL",      mrb_fixnum_value(CAP_AUDIT_CONTROL));
-    mrb_define_const(mrb, capability, "CAP_SETFCAP",            mrb_fixnum_value(CAP_SETFCAP));
-    mrb_define_const(mrb, capability, "CAP_MAC_OVERRIDE",       mrb_fixnum_value(CAP_MAC_OVERRIDE));
-    mrb_define_const(mrb, capability, "CAP_MAC_ADMIN",          mrb_fixnum_value(CAP_MAC_ADMIN));
-    mrb_define_const(mrb, capability, "CAP_SYSLOG",             mrb_fixnum_value(CAP_SYSLOG));
-    mrb_define_const(mrb, capability, "CAP_WAKE_ALARM",         mrb_fixnum_value(CAP_WAKE_ALARM));
-    mrb_define_const(mrb, capability, "CAP_BLOCK_SUSPEND",      mrb_fixnum_value(CAP_BLOCK_SUSPEND));
-    mrb_define_const(mrb, capability, "CAP_COMPROMISE_KERNEL",  mrb_fixnum_value(CAP_COMPROMISE_KERNEL));
+    //mrb_define_const(mrb, capability, "CAP_SETFCAP",            mrb_fixnum_value(CAP_SETFCAP));
+    //mrb_define_const(mrb, capability, "CAP_MAC_OVERRIDE",       mrb_fixnum_value(CAP_MAC_OVERRIDE));
+    //mrb_define_const(mrb, capability, "CAP_MAC_ADMIN",          mrb_fixnum_value(CAP_MAC_ADMIN));
+    //mrb_define_const(mrb, capability, "CAP_SYSLOG",             mrb_fixnum_value(CAP_SYSLOG));
+    //mrb_define_const(mrb, capability, "CAP_WAKE_ALARM",         mrb_fixnum_value(CAP_WAKE_ALARM));
+    //mrb_define_const(mrb, capability, "CAP_BLOCK_SUSPEND",      mrb_fixnum_value(CAP_BLOCK_SUSPEND));
+    //mrb_define_const(mrb, capability, "CAP_COMPROMISE_KERNEL",  mrb_fixnum_value(CAP_COMPROMISE_KERNEL));
 
     DONE;
 }
