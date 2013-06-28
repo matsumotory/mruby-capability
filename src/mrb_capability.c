@@ -49,7 +49,7 @@ typedef struct {
 static void mrb_cap_context_free(mrb_state *mrb, void *p)
 {
     mrb_cap_context *ctx = (mrb_cap_context *)p;
-    cap_free(ctx->cap);
+    //cap_free(ctx->cap);
 }
 
 static const struct mrb_data_type mrb_cap_context_type = {
@@ -108,6 +108,7 @@ mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
     cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, CAP_SET);
     if (cap_set_proc(cap_ctx->cap) != 0)
         mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on set");
+    //cap_free(cap_ctx->cap);
 
     mrb_iv_set(mrb
         , self
@@ -160,6 +161,7 @@ mrb_value mrb_cap_clear(mrb_state *mrb, mrb_value self)
     cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, CAP_CLEAR);
     if (cap_set_proc(cap_ctx->cap) != 0)
         mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on clear");
+    //cap_free(cap_ctx->cap);
 
     mrb_iv_set(mrb
         , self
@@ -194,6 +196,7 @@ mrb_value mrb_cap_set_flag(mrb_state *mrb, mrb_value self)
     cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, state);
     if (cap_set_proc(cap_ctx->cap) != 0)
         mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on set_flag");
+    //cap_free(cap_ctx->cap);
 
     mrb_iv_set(mrb
         , self
@@ -205,6 +208,13 @@ mrb_value mrb_cap_set_flag(mrb_state *mrb, mrb_value self)
         )
     );
 
+    return self;
+}
+
+mrb_value mrb_cap_free(mrb_state *mrb, mrb_value self)
+{
+    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+    cap_free(cap_ctx->cap);
     return self;
 }
 
@@ -249,6 +259,7 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     mrb_define_method(mrb, capability, "clear",         mrb_cap_clear,      ARGS_ANY());
     mrb_define_method(mrb, capability, "unset",         mrb_cap_clear,      ARGS_ANY());
     mrb_define_method(mrb, capability, "set_flag",      mrb_cap_set_flag,   ARGS_ANY());
+    mrb_define_method(mrb, capability, "free",          mrb_cap_free,       ARGS_NONE());
 
     // test
     mrb_define_method(mrb, capability, "setuid",        mrb_cap_setuid,      ARGS_ANY());
