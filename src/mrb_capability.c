@@ -245,6 +245,16 @@ mrb_value mrb_cap_setgid(mrb_state *mrb, mrb_value self)
     return self;
 }
 
+mrb_value mrb_cap_getuid(mrb_state *mrb, mrb_value self)
+{
+    return mrb_fixnum_value((mrb_int)getuid());
+}
+
+mrb_value mrb_cap_getgid(mrb_state *mrb, mrb_value self)
+{
+    return mrb_fixnum_value((mrb_int)getgid());
+}
+
 void mrb_mruby_capability_gem_init(mrb_state *mrb)
 {
     struct RClass *capability;
@@ -264,6 +274,8 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     // test
     mrb_define_method(mrb, capability, "setuid",        mrb_cap_setuid,      ARGS_ANY());
     mrb_define_method(mrb, capability, "setgid",        mrb_cap_setgid,      ARGS_ANY());
+    mrb_define_method(mrb, capability, "getuid",        mrb_cap_getuid,      ARGS_NONE());
+    mrb_define_method(mrb, capability, "getgid",        mrb_cap_getgid,      ARGS_NONE());
 
     mrb_define_const(mrb, capability, "CAP_CLEAR",              mrb_fixnum_value(CAP_CLEAR));
     mrb_define_const(mrb, capability, "CAP_SET",                mrb_fixnum_value(CAP_SET));
