@@ -61,7 +61,7 @@ static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, cha
     mrb_cap_context *c;
     mrb_value context;
 
-    context = mrb_iv_get(mrb, self, mrb_intern(mrb, ctx_flag));
+    context = mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, ctx_flag));
     Data_Get_Struct(mrb, context, &mrb_cap_context_type, c);
     if (!c)
         mrb_raise(mrb, E_RUNTIME_ERROR, "get mrb_cap_context failed");
@@ -78,7 +78,7 @@ mrb_value mrb_cap_init(mrb_state *mrb, mrb_value self)
 
     mrb_iv_set(mrb
         , self
-        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_intern_cstr(mrb, "mrb_cap_context")
         , mrb_obj_value(Data_Wrap_Struct(mrb
             , mrb->object_class
             , &mrb_cap_context_type
@@ -112,7 +112,7 @@ mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
 
     mrb_iv_set(mrb
         , self
-        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_intern_cstr(mrb, "mrb_cap_context")
         , mrb_obj_value(Data_Wrap_Struct(mrb
             , mrb->object_class
             , &mrb_cap_context_type
@@ -131,7 +131,7 @@ mrb_value mrb_cap_get(mrb_state *mrb, mrb_value self)
 
     mrb_iv_set(mrb
         , self
-        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_intern_cstr(mrb, "mrb_cap_context")
         , mrb_obj_value(Data_Wrap_Struct(mrb
             , mrb->object_class
             , &mrb_cap_context_type
@@ -165,7 +165,7 @@ mrb_value mrb_cap_clear(mrb_state *mrb, mrb_value self)
 
     mrb_iv_set(mrb
         , self
-        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_intern_cstr(mrb, "mrb_cap_context")
         , mrb_obj_value(Data_Wrap_Struct(mrb
             , mrb->object_class
             , &mrb_cap_context_type
@@ -200,7 +200,7 @@ mrb_value mrb_cap_set_flag(mrb_state *mrb, mrb_value self)
 
     mrb_iv_set(mrb
         , self
-        , mrb_intern(mrb, "mrb_cap_context")
+        , mrb_intern_cstr(mrb, "mrb_cap_context")
         , mrb_obj_value(Data_Wrap_Struct(mrb
             , mrb->object_class
             , &mrb_cap_context_type
