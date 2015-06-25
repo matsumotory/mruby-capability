@@ -261,21 +261,21 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
 
     capability = mrb_define_class(mrb, "Capability", mrb->object_class);
 
-    mrb_define_method(mrb, capability, "initialize",    mrb_cap_init,       ARGS_NONE());
-    mrb_define_method(mrb, capability, "get",           mrb_cap_get,        ARGS_NONE());
-    mrb_define_method(mrb, capability, "get_proc",      mrb_cap_get,        ARGS_NONE());
-    mrb_define_method(mrb, capability, "set",           mrb_cap_set,        ARGS_ANY());
-    mrb_define_method(mrb, capability, "set_proc",      mrb_cap_set,        ARGS_ANY());
-    mrb_define_method(mrb, capability, "clear",         mrb_cap_clear,      ARGS_ANY());
-    mrb_define_method(mrb, capability, "unset",         mrb_cap_clear,      ARGS_ANY());
-    mrb_define_method(mrb, capability, "set_flag",      mrb_cap_set_flag,   ARGS_ANY());
-    mrb_define_method(mrb, capability, "free",          mrb_cap_free,       ARGS_NONE());
+    mrb_define_method(mrb, capability, "initialize",    mrb_cap_init,       MRB_ARGS_NONE());
+    mrb_define_method(mrb, capability, "get",           mrb_cap_get,        MRB_ARGS_NONE());
+    mrb_define_method(mrb, capability, "get_proc",      mrb_cap_get,        MRB_ARGS_NONE());
+    mrb_define_method(mrb, capability, "set",           mrb_cap_set,        MRB_ARGS_ANY());
+    mrb_define_method(mrb, capability, "set_proc",      mrb_cap_set,        MRB_ARGS_ANY());
+    mrb_define_method(mrb, capability, "clear",         mrb_cap_clear,      MRB_ARGS_ANY());
+    mrb_define_method(mrb, capability, "unset",         mrb_cap_clear,      MRB_ARGS_ANY());
+    mrb_define_method(mrb, capability, "set_flag",      mrb_cap_set_flag,   MRB_ARGS_ANY());
+    mrb_define_method(mrb, capability, "free",          mrb_cap_free,       MRB_ARGS_NONE());
 
     // test
-    mrb_define_method(mrb, capability, "setuid",        mrb_cap_setuid,      ARGS_ANY());
-    mrb_define_method(mrb, capability, "setgid",        mrb_cap_setgid,      ARGS_ANY());
-    mrb_define_method(mrb, capability, "getuid",        mrb_cap_getuid,      ARGS_NONE());
-    mrb_define_method(mrb, capability, "getgid",        mrb_cap_getgid,      ARGS_NONE());
+    mrb_define_method(mrb, capability, "setuid",        mrb_cap_setuid,      MRB_ARGS_ANY());
+    mrb_define_method(mrb, capability, "setgid",        mrb_cap_setgid,      MRB_ARGS_ANY());
+    mrb_define_method(mrb, capability, "getuid",        mrb_cap_getuid,      MRB_ARGS_NONE());
+    mrb_define_method(mrb, capability, "getgid",        mrb_cap_getgid,      MRB_ARGS_NONE());
 
     mrb_define_const(mrb, capability, "CAP_CLEAR",              mrb_fixnum_value(CAP_CLEAR));
     mrb_define_const(mrb, capability, "CAP_SET",                mrb_fixnum_value(CAP_SET));
