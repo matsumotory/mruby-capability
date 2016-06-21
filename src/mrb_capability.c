@@ -272,7 +272,16 @@ static mrb_value mrb_cap_get_bound(mrb_state *mrb, mrb_value self)
 
 static mrb_value mrb_cap_drop_bound(mrb_state *mrb, mrb_value self)
 {
-    return mrb_nil_value();
+    mrb_int cap;
+    int ret;
+    mrb_get_args(mrb, "i", &cap);
+
+    ret = cap_drop_bound((cap_value_t)cap);
+    if(ret < 0){
+        mrb_sys_fail(mrb, "cap_drop_bound failed.");
+    }
+
+    return mrb_fixnum_value(ret);
 }
 
 static mrb_value mrb_cap_is_supported(mrb_state *mrb, mrb_value self)
