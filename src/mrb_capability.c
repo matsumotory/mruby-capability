@@ -277,7 +277,14 @@ static mrb_value mrb_cap_drop_bound(mrb_state *mrb, mrb_value self)
 
 static mrb_value mrb_cap_is_supported(mrb_state *mrb, mrb_value self)
 {
-    return mrb_nil_value();
+    mrb_int cap;
+    mrb_get_args(mrb, "i", &cap);
+
+    if CAP_IS_SUPPORTED((cap_value_t)cap) {
+        return mrb_true_value();
+    } else {
+        return mrb_false_value();
+    }
 }
 
 void mrb_mruby_capability_gem_init(mrb_state *mrb)
