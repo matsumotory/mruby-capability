@@ -36,6 +36,7 @@
 #include "mruby/data.h"
 #include "mruby/string.h"
 #include "mruby/array.h"
+#include "mruby/error.h"
 
 
 #define CAP_NUM 38
@@ -257,17 +258,26 @@ mrb_value mrb_cap_getgid(mrb_state *mrb, mrb_value self)
 
 static mrb_value mrb_cap_get_bound(mrb_state *mrb, mrb_value self)
 {
-    return mrb_nil_value()
+    mrb_int cap;
+    int ret;
+    mrb_get_args(mrb, "i", &cap);
+
+    ret = cap_get_bound((cap_value_t)cap);
+    if(ret < 0){
+        mrb_sys_fail(mrb, "cap_get_bound failed.");
+    }
+
+    return mrb_fixnum_value(ret);
 }
 
 static mrb_value mrb_cap_drop_bound(mrb_state *mrb, mrb_value self)
 {
-    return mrb_nil_value()
+    return mrb_nil_value();
 }
 
 static mrb_value mrb_cap_is_supported(mrb_state *mrb, mrb_value self)
 {
-    return mrb_nil_value()
+    return mrb_nil_value();
 }
 
 void mrb_mruby_capability_gem_init(mrb_state *mrb)
