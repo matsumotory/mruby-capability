@@ -296,6 +296,21 @@ static mrb_value mrb_cap_is_supported(mrb_state *mrb, mrb_value self)
     }
 }
 
+static mrb_value mrb_cap_from_name(mrb_state *mrb, mrb_value self)
+{
+    const char *cap_name;
+    cap_value_t cap;
+    int ret;
+    mrb_get_args(mrb, "z", &cap_name);
+
+    ret = cap_from_name(cap_name, &cap);
+    if(ret < 0){
+        mrb_sys_fail(mrb, "cap_from_name failed.");
+    }
+
+    return mrb_fixnum_value((mrb_int)cap);
+}
+
 void mrb_mruby_capability_gem_init(mrb_state *mrb)
 {
     struct RClass *capability;
@@ -316,6 +331,7 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     mrb_define_class_method(mrb, capability, "get_bound",  mrb_cap_get_bound,    MRB_ARGS_REQ(1));
     mrb_define_class_method(mrb, capability, "drop_bound", mrb_cap_drop_bound,   MRB_ARGS_REQ(1));
     mrb_define_class_method(mrb, capability, "supported?", mrb_cap_is_supported, MRB_ARGS_REQ(1));
+    mrb_define_class_method(mrb, capability, "from_name",  mrb_cap_from_name,    MRB_ARGS_REQ(1));
 
     // test
     mrb_define_method(mrb, capability, "setuid",        mrb_cap_setuid,      MRB_ARGS_ANY());
