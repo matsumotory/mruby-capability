@@ -5,6 +5,6 @@ MRuby::Build.new do |conf|
   conf.enable_test
 
   conf.cc do |cc|
-    cc.flags = << "-Wno-error=declaration-after-statement"
+    cc.flags << "-Wno-error=declaration-after-statement"
   end
 end
