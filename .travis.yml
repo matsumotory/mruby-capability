@@ -2,10 +2,9 @@ sudo: false
 addons:
   apt:
     packages:
-      - rake
+      - libcap-dev
       - bison
       - git
-      - gperf
 language: c
 compiler:
   - gcc
