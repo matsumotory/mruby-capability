@@ -36,6 +36,7 @@
 #include "mruby/data.h"
 #include "mruby/string.h"
 #include "mruby/array.h"
+#include "mruby/error.h"
 
 
 #define CAP_NUM 38
@@ -122,7 +123,7 @@ mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
 
     return self;
 }
- 
+
 mrb_value mrb_cap_get(mrb_state *mrb, mrb_value self)
 {
     mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
@@ -255,6 +256,61 @@ mrb_value mrb_cap_getgid(mrb_state *mrb, mrb_value self)
     return mrb_fixnum_value((mrb_int)getgid());
 }
 
+static mrb_value mrb_cap_get_bound(mrb_state *mrb, mrb_value self)
+{
+    mrb_int cap;
+    int ret;
+    mrb_get_args(mrb, "i", &cap);
+
+    ret = cap_get_bound((cap_value_t)cap);
+    if(ret < 0){
+        mrb_sys_fail(mrb, "cap_get_bound failed.");
+    }
+
+    return mrb_fixnum_value(ret);
+}
+
+static mrb_value mrb_cap_drop_bound(mrb_state *mrb, mrb_value self)
+{
+    mrb_int cap;
+    int ret;
+    mrb_get_args(mrb, "i", &cap);
+
+    ret = cap_drop_bound((cap_value_t)cap);
+    if(ret < 0){
+        mrb_sys_fail(mrb, "cap_drop_bound failed.");
+    }
+
+    return mrb_fixnum_value(ret);
+}
+
+static mrb_value mrb_cap_is_supported(mrb_state *mrb, mrb_value self)
+{
+    mrb_int cap;
+    mrb_get_args(mrb, "i", &cap);
+
+    if CAP_IS_SUPPORTED((cap_value_t)cap) {
+        return mrb_true_value();
+    } else {
+        return mrb_false_value();
+    }
+}
+
+static mrb_value mrb_cap_from_name(mrb_state *mrb, mrb_value self)
+{
+    const char *cap_name;
+    cap_value_t cap;
+    int ret;
+    mrb_get_args(mrb, "z", &cap_name);
+
+    ret = cap_from_name(cap_name, &cap);
+    if(ret < 0){
+        mrb_sys_fail(mrb, "cap_from_name failed.");
+    }
+
+    return mrb_fixnum_value((mrb_int)cap);
+}
+
 void mrb_mruby_capability_gem_init(mrb_state *mrb)
 {
     struct RClass *capability;
@@ -270,6 +326,12 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     mrb_define_method(mrb, capability, "unset",         mrb_cap_clear,      MRB_ARGS_ANY());
     mrb_define_method(mrb, capability, "set_flag",      mrb_cap_set_flag,   MRB_ARGS_ANY());
     mrb_define_method(mrb, capability, "free",          mrb_cap_free,       MRB_ARGS_NONE());
+
+    // class methods
+    mrb_define_class_method(mrb, capability, "get_bound",  mrb_cap_get_bound,    MRB_ARGS_REQ(1));
+    mrb_define_class_method(mrb, capability, "drop_bound", mrb_cap_drop_bound,   MRB_ARGS_REQ(1));
+    mrb_define_class_method(mrb, capability, "supported?", mrb_cap_is_supported, MRB_ARGS_REQ(1));
+    mrb_define_class_method(mrb, capability, "from_name",  mrb_cap_from_name,    MRB_ARGS_REQ(1));
 
     // test
     mrb_define_method(mrb, capability, "setuid",        mrb_cap_setuid,      MRB_ARGS_ANY());
@@ -329,4 +391,3 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
 void mrb_mruby_capability_gem_final(mrb_state *mrb)
 {
 }
-
