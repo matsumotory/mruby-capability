@@ -8,4 +8,12 @@ class Capability
       return cap
     end
   end
+
+  def to_s
+    to_text
+  end
+
+  def inspect
+    "#<Capability #{to_s}>"
+  end
 end

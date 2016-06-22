@@ -38,7 +38,6 @@
 #include "mruby/array.h"
 #include "mruby/error.h"
 
-
 #define CAP_NUM 38
 #define DONE    mrb_gc_arena_restore(mrb, 0);
 
@@ -219,6 +218,17 @@ mrb_value mrb_cap_free(mrb_state *mrb, mrb_value self)
     return self;
 }
 
+mrb_value mrb_cap_to_text(mrb_state *mrb, mrb_value self)
+{
+    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+    char *to_s = cap_to_text(cap_ctx->cap, NULL);
+    if (to_s == NULL) {
+        mrb_sys_fail(mrb, "failed to get txt from cap");
+    }
+
+    return mrb_str_new_cstr(mrb, to_s);
+}
+
 // test
 mrb_value mrb_cap_setuid(mrb_state *mrb, mrb_value self)
 {
@@ -326,6 +336,7 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     mrb_define_method(mrb, capability, "unset",         mrb_cap_clear,      MRB_ARGS_ANY());
     mrb_define_method(mrb, capability, "set_flag",      mrb_cap_set_flag,   MRB_ARGS_ANY());
     mrb_define_method(mrb, capability, "free",          mrb_cap_free,       MRB_ARGS_NONE());
+    mrb_define_method(mrb, capability, "to_text",       mrb_cap_to_text,    MRB_ARGS_NONE());
 
     // class methods
     mrb_define_class_method(mrb, capability, "get_bound",  mrb_cap_get_bound,    MRB_ARGS_REQ(1));
