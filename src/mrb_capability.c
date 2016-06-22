@@ -56,7 +56,7 @@ static const struct mrb_data_type mrb_cap_context_type = {
     "mrb_cap_context", mrb_cap_context_free,
 };
 
-static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, char *ctx_flag)
+static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, const char *ctx_flag)
 {
     mrb_cap_context *c;
     mrb_value context;
@@ -122,7 +122,7 @@ mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
 
     return self;
 }
- 
+
 mrb_value mrb_cap_get(mrb_state *mrb, mrb_value self)
 {
     mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
@@ -329,4 +329,3 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
 void mrb_mruby_capability_gem_final(mrb_state *mrb)
 {
 }
-
