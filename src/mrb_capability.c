@@ -57,7 +57,7 @@ static const struct mrb_data_type mrb_cap_context_type = {
     "mrb_cap_context", mrb_cap_context_free,
 };
 
-static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, char *ctx_flag)
+static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, const char *ctx_flag)
 {
     mrb_cap_context *c;
     mrb_value context;
