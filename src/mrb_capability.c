@@ -58,12 +58,17 @@ static void mrb_cap_context_free(mrb_state *mrb, void *p)
     //cap_free(ctx->cap);
 }
 
+static void mrb_cap_skip_free(mrb_state *mrb, void *p)
+{
+    return;
+}
+
 static const struct mrb_data_type mrb_cap_context_type = {
     "mrb_cap_context", mrb_cap_context_free,
 };
 
 static const struct mrb_data_type mrb_file_cap_context_type = {
-    "mrb_file_cap_context", mrb_free,
+    "mrb_file_cap_context", mrb_cap_skip_free,
 };
 
 static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, const char *ctx_flag)
@@ -296,11 +301,7 @@ mrb_value mrb_file_cap_init(mrb_state *mrb, mrb_value self)
 
     mrb_get_args(mrb, "z", &path);
     cap_ctx->path = path;
-    cap_t fcap = cap_get_file(path);
-    if(fcap == NULL) {
-        mrb_sys_fail(mrb, "failed to get file cap. maybe not yet set?");
-    }
-    cap_ctx->cap = fcap;
+    cap_ctx->cap = cap_get_file(path);
 
     mrb_iv_set(mrb
         , self
@@ -321,9 +322,51 @@ mrb_value mrb_file_cap_path(mrb_state *mrb, mrb_value self)
     return mrb_str_new_cstr(mrb, cap_ctx->path);
 }
 
+mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
+{
+    mrb_value ary;
+    mrb_int identify;
+    int i, ret;
+    mrb_file_cap_context *cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
+
+    if(cap_ctx->cap == NULL) {
+        cap_ctx->cap = cap_init();
+    }
+
+    mrb_get_args(mrb, "iA", &identify, &ary);
+    struct RArray *a = mrb_ary_ptr(ary);
+    int ncap = a->len;
+
+    for (i = 0; i < ncap; i++) {
+        cap_ctx->capval[i] = (cap_value_t)mrb_fixnum(a->ptr[i]);
+    }
+    cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, CAP_SET);
+
+    ret = cap_set_file(cap_ctx->path, cap_ctx->cap);
+    if(ret < 0){
+        mrb_sys_fail(mrb, "cap_set_file() failed");
+    }
+
+    mrb_iv_set(mrb
+        , self
+        , mrb_intern_cstr(mrb, "mrb_file_cap_context")
+        , mrb_obj_value(Data_Wrap_Struct(mrb
+            , mrb->object_class
+            , &mrb_file_cap_context_type
+            , (void *)cap_ctx)
+        )
+    );
+
+    return self;
+}
+
 mrb_value mrb_file_cap_to_text(mrb_state *mrb, mrb_value self)
 {
     mrb_file_cap_context *cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
+    if(cap_ctx->cap == NULL) {
+        return mrb_str_new_cstr(mrb, "<Not yet set.>");
+    }
+
     char *to_s = cap_to_text(cap_ctx->cap, NULL);
     if (to_s == NULL) {
         mrb_sys_fail(mrb, "failed to get txt from cap");
@@ -418,9 +461,10 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     mrb_define_method(mrb, capability, "getgid",        mrb_cap_getgid,      MRB_ARGS_NONE());
 
     file = mrb_define_class_under(mrb, capability, "File", mrb->object_class);
-    mrb_define_method(mrb, file, "initialize", mrb_file_cap_init,    MRB_ARGS_REQ(1));
-    mrb_define_method(mrb, file, "path",       mrb_file_cap_path,    MRB_ARGS_REQ(1));
-    mrb_define_method(mrb, file, "to_text",    mrb_file_cap_to_text, MRB_ARGS_NONE());
+    mrb_define_method(mrb, file, "initialize", mrb_file_cap_init,     MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, file, "path",       mrb_file_cap_path,     MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, file, "to_text",    mrb_file_cap_to_text,  MRB_ARGS_NONE());
+    mrb_define_method(mrb, file, "set",        mrb_file_cap_set_file, MRB_ARGS_REQ(2));
 
     mrb_define_const(mrb, capability, "CAP_CLEAR",              mrb_fixnum_value(CAP_CLEAR));
     mrb_define_const(mrb, capability, "CAP_SET",                mrb_fixnum_value(CAP_SET));
