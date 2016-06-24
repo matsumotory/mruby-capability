@@ -337,7 +337,6 @@ static mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
     if (cap_set_file(file_cap_ctx->path, file_cap_ctx->cap) < 0) {
         mrb_sys_fail(mrb, "cap_set_file() failed");
     }
-    DATA_PTR(self) = file_cap_ctx;
 
     return self;
 }
@@ -361,7 +360,6 @@ static mrb_value mrb_file_cap_clear(mrb_state *mrb, mrb_value self)
     cap_set_flag(file_cap_ctx->cap, identify, ncap, file_cap_ctx->capval, CAP_CLEAR);
     if (cap_set_proc(file_cap_ctx->cap) != 0)
         mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on clear");
-    DATA_PTR(self) = file_cap_ctx;
 
     return self;
 }
