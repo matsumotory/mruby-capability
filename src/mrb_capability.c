@@ -86,19 +86,6 @@ static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, con
     return c;
 }
 
-static mrb_file_cap_context *mrb_file_cap_get_context(mrb_state *mrb,  mrb_value self, const char *ctx_flag)
-{
-    mrb_file_cap_context *c;
-    mrb_value context;
-
-    context = mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, ctx_flag));
-    Data_Get_Struct(mrb, context, &mrb_file_cap_context_type, c);
-    if (!c)
-        mrb_raise(mrb, E_RUNTIME_ERROR, "get mrb_file_cap_context failed");
-
-    return c;
-}
-
 mrb_value mrb_cap_init(mrb_state *mrb, mrb_value self)
 {
     mrb_cap_context *cap_ctx = (mrb_cap_context *)mrb_malloc(mrb, sizeof(mrb_cap_context));
@@ -299,28 +286,28 @@ mrb_value mrb_cap_getgid(mrb_state *mrb, mrb_value self)
 static mrb_value mrb_file_cap_init(mrb_state *mrb, mrb_value self)
 {
     char *path;
-    mrb_file_cap_context *file_cap_ctx = (mrb_file_cap_context *)mrb_malloc(mrb, sizeof(mrb_file_cap_context));
+    mrb_file_cap_context *file_cap_ctx;
+
+    file_cap_ctx = (mrb_file_cap_context *)DATA_PTR(self);
+    if (file_cap_ctx) {
+        cap_free(file_cap_ctx->cap);
+    }
+
+    file_cap_ctx = (mrb_file_cap_context *)mrb_malloc(mrb, sizeof(mrb_file_cap_context));
 
     mrb_get_args(mrb, "z", &path);
     file_cap_ctx->path = path;
     file_cap_ctx->cap = cap_get_file(path);
 
-    mrb_iv_set(mrb
-        , self
-        , mrb_intern_cstr(mrb, "mrb_file_cap_context")
-        , mrb_obj_value(Data_Wrap_Struct(mrb
-            , mrb->object_class
-            , &mrb_file_cap_context_type
-            , (void *)file_cap_ctx)
-        )
-    );
+    DATA_TYPE(self) = &mrb_file_cap_context_type;
+    DATA_PTR(self)  = file_cap_ctx;
 
     return self;
 }
 
 static mrb_value mrb_file_cap_path(mrb_state *mrb, mrb_value self)
 {
-    mrb_file_cap_context *file_cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
+    mrb_file_cap_context *file_cap_ctx = (mrb_file_cap_context *)DATA_PTR(self);
     return mrb_str_new_cstr(mrb, file_cap_ctx->path);
 }
 
@@ -329,7 +316,7 @@ static mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
     mrb_value ary;
     mrb_int identify;
     int i, ret;
-    mrb_file_cap_context *file_cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
+    mrb_file_cap_context *file_cap_ctx = (mrb_file_cap_context *)DATA_PTR(self);
 
     if(file_cap_ctx->cap == NULL) {
         file_cap_ctx->cap = cap_init();
@@ -364,7 +351,7 @@ static mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
 
 static mrb_value mrb_file_cap_clear(mrb_state *mrb, mrb_value self)
 {
-    mrb_file_cap_context *file_cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
+    mrb_file_cap_context *file_cap_ctx = (mrb_file_cap_context *)DATA_PTR(self);
 
     int i;
     mrb_value ary;
@@ -397,7 +384,7 @@ static mrb_value mrb_file_cap_clear(mrb_state *mrb, mrb_value self)
 
 static mrb_value mrb_file_cap_to_text(mrb_state *mrb, mrb_value self)
 {
-    mrb_file_cap_context *file_cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
+    mrb_file_cap_context *file_cap_ctx = (mrb_file_cap_context *)DATA_PTR(self);
     if(file_cap_ctx->cap == NULL) {
         return mrb_str_new_lit(mrb, "<Not yet set.>");
     }
