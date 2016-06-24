@@ -315,7 +315,7 @@ static mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
 {
     mrb_value ary;
     mrb_int identify;
-    int i, ret;
+    int i;
     mrb_file_cap_context *file_cap_ctx = (mrb_file_cap_context *)DATA_PTR(self);
 
     if(file_cap_ctx->cap == NULL) {
@@ -331,20 +331,10 @@ static mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
     }
     cap_set_flag(file_cap_ctx->cap, identify, ncap, file_cap_ctx->capval, CAP_SET);
 
-    ret = cap_set_file(file_cap_ctx->path, file_cap_ctx->cap);
-    if(ret < 0){
+    if (cap_set_file(file_cap_ctx->path, file_cap_ctx->cap) < 0) {
         mrb_sys_fail(mrb, "cap_set_file() failed");
     }
-
-    mrb_iv_set(mrb
-        , self
-        , mrb_intern_cstr(mrb, "mrb_file_cap_context")
-        , mrb_obj_value(Data_Wrap_Struct(mrb
-            , mrb->object_class
-            , &mrb_file_cap_context_type
-            , (void *)file_cap_ctx)
-        )
-    );
+    DATA_PTR(self) = file_cap_ctx;
 
     return self;
 }
@@ -368,16 +358,7 @@ static mrb_value mrb_file_cap_clear(mrb_state *mrb, mrb_value self)
     cap_set_flag(file_cap_ctx->cap, identify, ncap, file_cap_ctx->capval, CAP_CLEAR);
     if (cap_set_proc(file_cap_ctx->cap) != 0)
         mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on clear");
-
-    mrb_iv_set(mrb
-        , self
-        , mrb_intern_cstr(mrb, "mrb_file_cap_context")
-        , mrb_obj_value(Data_Wrap_Struct(mrb
-            , mrb->object_class
-            , &mrb_file_cap_context_type
-            , (void *)file_cap_ctx)
-        )
-    );
+    DATA_PTR(self) = file_cap_ctx;
 
     return self;
 }
