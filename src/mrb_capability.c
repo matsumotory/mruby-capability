@@ -294,7 +294,7 @@ mrb_value mrb_cap_getgid(mrb_state *mrb, mrb_value self)
     return mrb_fixnum_value((mrb_int)getgid());
 }
 
-mrb_value mrb_file_cap_init(mrb_state *mrb, mrb_value self)
+static mrb_value mrb_file_cap_init(mrb_state *mrb, mrb_value self)
 {
     char *path;
     mrb_file_cap_context *cap_ctx = (mrb_file_cap_context *)mrb_malloc(mrb, sizeof(mrb_file_cap_context));
@@ -316,13 +316,13 @@ mrb_value mrb_file_cap_init(mrb_state *mrb, mrb_value self)
     return self;
 }
 
-mrb_value mrb_file_cap_path(mrb_state *mrb, mrb_value self)
+static mrb_value mrb_file_cap_path(mrb_state *mrb, mrb_value self)
 {
     mrb_file_cap_context *cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
     return mrb_str_new_cstr(mrb, cap_ctx->path);
 }
 
-mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
+static mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
 {
     mrb_value ary;
     mrb_int identify;
@@ -360,7 +360,7 @@ mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
     return self;
 }
 
-mrb_value mrb_file_cap_to_text(mrb_state *mrb, mrb_value self)
+static mrb_value mrb_file_cap_to_text(mrb_state *mrb, mrb_value self)
 {
     mrb_file_cap_context *cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
     if(cap_ctx->cap == NULL) {
