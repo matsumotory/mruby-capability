@@ -36,6 +36,7 @@
 #include "mruby/data.h"
 #include "mruby/string.h"
 #include "mruby/array.h"
+#include "mruby/class.h"
 #include "mruby/error.h"
 
 #define CAP_NUM 38
@@ -461,7 +462,7 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     mrb_define_method(mrb, capability, "getgid",        mrb_cap_getgid,      MRB_ARGS_NONE());
 
     file = mrb_define_class_under(mrb, capability, "File", mrb->object_class);
-    MRB_SET_INSTANCE_TT(file, MRB_TT_DATA)
+    MRB_SET_INSTANCE_TT(file, MRB_TT_DATA);
 
     mrb_define_method(mrb, file, "initialize", mrb_file_cap_init,     MRB_ARGS_REQ(1));
     mrb_define_method(mrb, file, "path",       mrb_file_cap_path,     MRB_ARGS_REQ(1));
