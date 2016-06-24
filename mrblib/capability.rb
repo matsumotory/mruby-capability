@@ -26,4 +26,6 @@ class Capability::File
   def inspect
     "#<Capability::File(#{path}) #{to_s}>"
   end
+
+  alias unset clear
 end

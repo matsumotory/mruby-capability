@@ -59,9 +59,10 @@ static void mrb_cap_context_free(mrb_state *mrb, void *p)
     //cap_free(ctx->cap);
 }
 
-static void mrb_cap_skip_free(mrb_state *mrb, void *p)
+static void mrb_file_cap_context_free(mrb_state *mrb, void *p)
 {
-    return;
+    mrb_file_cap_context *f_ctx = (mrb_file_cap_context *)p;
+    cap_free(f_ctx->cap);
 }
 
 static const struct mrb_data_type mrb_cap_context_type = {
@@ -69,7 +70,7 @@ static const struct mrb_data_type mrb_cap_context_type = {
 };
 
 static const struct mrb_data_type mrb_file_cap_context_type = {
-    "mrb_file_cap_context", mrb_cap_skip_free,
+    "mrb_file_cap_context", mrb_file_cap_context_free,
 };
 
 static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, const char *ctx_flag)
@@ -361,6 +362,39 @@ static mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
     return self;
 }
 
+static mrb_value mrb_file_cap_clear(mrb_state *mrb, mrb_value self)
+{
+    mrb_file_cap_context *file_cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
+
+    int i;
+    mrb_value ary;
+    mrb_int identify;
+
+    mrb_get_args(mrb, "iA", &identify, &ary);
+    struct RArray *a = mrb_ary_ptr(ary);
+    int ncap = a->len;
+
+    for (i = 0; i < ncap; i++) {
+        file_cap_ctx->capval[i] = (cap_value_t)mrb_fixnum(a->ptr[i]);
+    }
+
+    cap_set_flag(file_cap_ctx->cap, identify, ncap, file_cap_ctx->capval, CAP_CLEAR);
+    if (cap_set_proc(file_cap_ctx->cap) != 0)
+        mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on clear");
+
+    mrb_iv_set(mrb
+        , self
+        , mrb_intern_cstr(mrb, "mrb_file_cap_context")
+        , mrb_obj_value(Data_Wrap_Struct(mrb
+            , mrb->object_class
+            , &mrb_file_cap_context_type
+            , (void *)file_cap_ctx)
+        )
+    );
+
+    return self;
+}
+
 static mrb_value mrb_file_cap_to_text(mrb_state *mrb, mrb_value self)
 {
     mrb_file_cap_context *file_cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
@@ -468,6 +502,7 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     mrb_define_method(mrb, file, "path",       mrb_file_cap_path,     MRB_ARGS_REQ(1));
     mrb_define_method(mrb, file, "to_text",    mrb_file_cap_to_text,  MRB_ARGS_NONE());
     mrb_define_method(mrb, file, "set",        mrb_file_cap_set_file, MRB_ARGS_REQ(2));
+    mrb_define_method(mrb, file, "clear",      mrb_file_cap_clear,    MRB_ARGS_REQ(2));
 
     mrb_define_const(mrb, capability, "CAP_CLEAR",              mrb_fixnum_value(CAP_CLEAR));
     mrb_define_const(mrb, capability, "CAP_SET",                mrb_fixnum_value(CAP_SET));
