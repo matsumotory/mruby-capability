@@ -42,6 +42,8 @@
 #define CAP_NUM 38
 #define DONE    mrb_gc_arena_restore(mrb, 0);
 
+#pragma GCC diagnostic ignored "-Wdeclaration-after-statement"
+
 typedef struct {
     cap_t cap;
     cap_value_t capval[CAP_NUM];
