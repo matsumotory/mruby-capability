@@ -17,3 +17,13 @@ class Capability
     "#<Capability #{to_s}>"
   end
 end
+
+class Capability::File
+  def to_s
+    to_text
+  end
+
+  def inspect
+    "#<Capability::File(#{path}) #{to_s}>"
+  end
+end
