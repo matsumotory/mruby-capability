@@ -65,6 +65,7 @@ static void mrb_file_cap_context_free(mrb_state *mrb, void *p)
 {
     mrb_file_cap_context *f_ctx = (mrb_file_cap_context *)p;
     cap_free(f_ctx->cap);
+    mrb_free(mrb, f_ctx);
 }
 
 static const struct mrb_data_type mrb_cap_context_type = {
