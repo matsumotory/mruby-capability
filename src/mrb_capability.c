@@ -364,7 +364,7 @@ mrb_value mrb_file_cap_to_text(mrb_state *mrb, mrb_value self)
 {
     mrb_file_cap_context *cap_ctx = mrb_file_cap_get_context(mrb, self, "mrb_file_cap_context");
     if(cap_ctx->cap == NULL) {
-        return mrb_str_new_cstr(mrb, "<Not yet set.>");
+        return mrb_str_new_lit(mrb, "<Not yet set.>");
     }
 
     char *to_s = cap_to_text(cap_ctx->cap, NULL);
