@@ -388,6 +388,7 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     struct RClass *file;
 
     capability = mrb_define_class(mrb, "Capability", mrb->object_class);
+    MRB_SET_INSTANCE_TT(capability, MRB_TT_DATA);
 
     mrb_define_method(mrb, capability, "initialize",    mrb_cap_init,       MRB_ARGS_NONE());
     mrb_define_method(mrb, capability, "get",           mrb_cap_get,        MRB_ARGS_NONE());
