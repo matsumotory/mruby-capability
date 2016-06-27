@@ -58,7 +58,8 @@ typedef struct {
 static void mrb_cap_context_free(mrb_state *mrb, void *p)
 {
     mrb_cap_context *ctx = (mrb_cap_context *)p;
-    //cap_free(ctx->cap);
+    cap_free(ctx->cap);
+    mrb_free(mrb, ctx);
 }
 
 static void mrb_file_cap_context_free(mrb_state *mrb, void *p)
@@ -76,42 +77,28 @@ static const struct mrb_data_type mrb_file_cap_context_type = {
     "mrb_file_cap_context", mrb_file_cap_context_free,
 };
 
-static mrb_cap_context *mrb_cap_get_context(mrb_state *mrb,  mrb_value self, const char *ctx_flag)
-{
-    mrb_cap_context *c;
-    mrb_value context;
-
-    context = mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, ctx_flag));
-    Data_Get_Struct(mrb, context, &mrb_cap_context_type, c);
-    if (!c)
-        mrb_raise(mrb, E_RUNTIME_ERROR, "get mrb_cap_context failed");
-
-    return c;
-}
-
 mrb_value mrb_cap_init(mrb_state *mrb, mrb_value self)
 {
-    mrb_cap_context *cap_ctx = (mrb_cap_context *)mrb_malloc(mrb, sizeof(mrb_cap_context));
+    mrb_cap_context *cap_ctx;
+
+    cap_ctx = (mrb_cap_context *)DATA_PTR(self);
+    if (cap_ctx) {
+        cap_free(cap_ctx->cap);
+    }
+    cap_ctx = (mrb_cap_context *)mrb_malloc(mrb, sizeof(mrb_cap_context));
 
     prctl(PR_SET_KEEPCAPS, 1);
     cap_ctx->cap = cap_init();
 
-    mrb_iv_set(mrb
-        , self
-        , mrb_intern_cstr(mrb, "mrb_cap_context")
-        , mrb_obj_value(Data_Wrap_Struct(mrb
-            , mrb->object_class
-            , &mrb_cap_context_type
-            , (void *)cap_ctx)
-        )
-    );
+    DATA_TYPE(self) = &mrb_cap_context_type;
+    DATA_PTR(self)  = cap_ctx;
 
     return self;
 }
 
 mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
 {
-    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+    mrb_cap_context *cap_ctx = (mrb_cap_context *)DATA_PTR(self);
 
     int i;
     mrb_value ary;
@@ -128,43 +115,25 @@ mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
     cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, CAP_SET);
     if (cap_set_proc(cap_ctx->cap) != 0)
         mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on set");
-    //cap_free(cap_ctx->cap);
-
-    mrb_iv_set(mrb
-        , self
-        , mrb_intern_cstr(mrb, "mrb_cap_context")
-        , mrb_obj_value(Data_Wrap_Struct(mrb
-            , mrb->object_class
-            , &mrb_cap_context_type
-            , (void *)cap_ctx)
-        )
-    );
 
     return self;
 }
 
 mrb_value mrb_cap_get(mrb_state *mrb, mrb_value self)
 {
-    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+    mrb_cap_context *cap_ctx = (mrb_cap_context *)DATA_PTR(self);
+    if (cap_ctx && cap_ctx->cap) {
+        cap_free(cap_ctx->cap);
+    }
 
     cap_ctx->cap = cap_get_proc();
-
-    mrb_iv_set(mrb
-        , self
-        , mrb_intern_cstr(mrb, "mrb_cap_context")
-        , mrb_obj_value(Data_Wrap_Struct(mrb
-            , mrb->object_class
-            , &mrb_cap_context_type
-            , (void *)cap_ctx)
-        )
-    );
 
     return self;
 }
 
 mrb_value mrb_cap_clear(mrb_state *mrb, mrb_value self)
 {
-    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+    mrb_cap_context *cap_ctx = (mrb_cap_context *)DATA_PTR(self);
 
     int i;
     mrb_value ary;
@@ -181,24 +150,13 @@ mrb_value mrb_cap_clear(mrb_state *mrb, mrb_value self)
     cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, CAP_CLEAR);
     if (cap_set_proc(cap_ctx->cap) != 0)
         mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on clear");
-    //cap_free(cap_ctx->cap);
-
-    mrb_iv_set(mrb
-        , self
-        , mrb_intern_cstr(mrb, "mrb_cap_context")
-        , mrb_obj_value(Data_Wrap_Struct(mrb
-            , mrb->object_class
-            , &mrb_cap_context_type
-            , (void *)cap_ctx)
-        )
-    );
 
     return self;
 }
 
 mrb_value mrb_cap_set_flag(mrb_state *mrb, mrb_value self)
 {
-    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+    mrb_cap_context *cap_ctx = (mrb_cap_context *)DATA_PTR(self);
 
     int i;
     mrb_value ary;
@@ -216,31 +174,21 @@ mrb_value mrb_cap_set_flag(mrb_state *mrb, mrb_value self)
     cap_set_flag(cap_ctx->cap, identify, ncap, cap_ctx->capval, state);
     if (cap_set_proc(cap_ctx->cap) != 0)
         mrb_raise(mrb, E_RUNTIME_ERROR, "cap_set_proc() failed on set_flag");
-    //cap_free(cap_ctx->cap);
-
-    mrb_iv_set(mrb
-        , self
-        , mrb_intern_cstr(mrb, "mrb_cap_context")
-        , mrb_obj_value(Data_Wrap_Struct(mrb
-            , mrb->object_class
-            , &mrb_cap_context_type
-            , (void *)cap_ctx)
-        )
-    );
 
     return self;
 }
 
 mrb_value mrb_cap_free(mrb_state *mrb, mrb_value self)
 {
-    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+    mrb_cap_context *cap_ctx = (mrb_cap_context *)DATA_PTR(self);
     cap_free(cap_ctx->cap);
+    DATA_PTR(self) = NULL;
     return self;
 }
 
 mrb_value mrb_cap_to_text(mrb_state *mrb, mrb_value self)
 {
-    mrb_cap_context *cap_ctx = mrb_cap_get_context(mrb, self, "mrb_cap_context");
+    mrb_cap_context *cap_ctx = (mrb_cap_context *)DATA_PTR(self);
     char *to_s = cap_to_text(cap_ctx->cap, NULL);
     if (to_s == NULL) {
         mrb_sys_fail(mrb, "failed to get txt from cap");
@@ -440,6 +388,7 @@ void mrb_mruby_capability_gem_init(mrb_state *mrb)
     struct RClass *file;
 
     capability = mrb_define_class(mrb, "Capability", mrb->object_class);
+    MRB_SET_INSTANCE_TT(capability, MRB_TT_DATA);
 
     mrb_define_method(mrb, capability, "initialize",    mrb_cap_init,       MRB_ARGS_NONE());
     mrb_define_method(mrb, capability, "get",           mrb_cap_get,        MRB_ARGS_NONE());
