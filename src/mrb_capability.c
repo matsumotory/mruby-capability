@@ -58,7 +58,8 @@ typedef struct {
 static void mrb_cap_context_free(mrb_state *mrb, void *p)
 {
     mrb_cap_context *ctx = (mrb_cap_context *)p;
-    //cap_free(ctx->cap);
+    cap_free(ctx->cap);
+    mrb_free(mrb, ctx);
 }
 
 static void mrb_file_cap_context_free(mrb_state *mrb, void *p)
@@ -78,7 +79,13 @@ static const struct mrb_data_type mrb_file_cap_context_type = {
 
 mrb_value mrb_cap_init(mrb_state *mrb, mrb_value self)
 {
-    mrb_cap_context *cap_ctx = (mrb_cap_context *)mrb_malloc(mrb, sizeof(mrb_cap_context));
+    mrb_cap_context *cap_ctx;
+
+    cap_ctx = (mrb_cap_context *)DATA_PTR(self);
+    if (cap_ctx) {
+        cap_free(cap_ctx->cap);
+    }
+    cap_ctx = (mrb_cap_context *)mrb_malloc(mrb, sizeof(mrb_cap_context));
 
     prctl(PR_SET_KEEPCAPS, 1);
     cap_ctx->cap = cap_init();
@@ -115,6 +122,9 @@ mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
 mrb_value mrb_cap_get(mrb_state *mrb, mrb_value self)
 {
     mrb_cap_context *cap_ctx = (mrb_cap_context *)DATA_PTR(self);
+    if (cap_ctx && cap_ctx->cap) {
+        cap_free(cap_ctx->cap);
+    }
 
     cap_ctx->cap = cap_get_proc();
 
