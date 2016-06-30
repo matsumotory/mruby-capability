@@ -84,6 +84,14 @@ end
  c.clear Capability::CAP_EFFECTIVE, cap
  c.set_flag Capability::CAP_PERMITTED, cap, Capability::CAP_CLEAR
  ```
+ 
+## Code formatting
+
+We use clang-format with [the configuration](https://github.com/matsumoto-r/mruby-capability/blob/master/.clang-format).
+
+```
+clang-format -i src/mrb_capability.c
+```
 
 # License
 under the MIT License:
