@@ -6,9 +6,12 @@ MRuby::Gem::Specification.new('mruby-capability') do |spec|
   require 'open3'
   require 'fileutils'
 
-  LIBCAP_VERSION = "2.25"
-  LIBCAP_TAG = "libcap-#{LIBCAP_VERSION}"
-  LIBCAP_CHECKOUT_URL = "https://kernel.googlesource.com/pub/scm/linux/kernel/git/morgan/libcap.git"
+  unless defined?(LIBCAP_VERSION)
+    LIBCAP_VERSION = "2.25"
+    LIBCAP_TAG = "libcap-#{LIBCAP_VERSION}"
+    LIBCAP_CHECKOUT_URL = "https://kernel.googlesource.com/pub/scm/linux/kernel/git/morgan/libcap.git"
+  end
+
   def libcap_dir(b); "#{b.build_dir}/libcap-#{LIBCAP_VERSION}"; end
   def libcap_libdir(b); "#{libcap_dir(b)}/libcap"; end
   def libcap_libfile(b); libfile("#{libcap_libdir(b)}/libcap"); end
