@@ -9,12 +9,12 @@ MRuby::Gem::Specification.new('mruby-capability') do |spec|
   LIBCAP_VERSION = "2.25"
   LIBCAP_TAG = "libcap-#{LIBCAP_VERSION}"
   LIBCAP_CHECKOUT_URL = "https://kernel.googlesource.com/pub/scm/linux/kernel/git/morgan/libcap.git"
-  LIBCAP_DIR = "#{build.build_dir}/libcap-#{LIBCAP_VERSION}"
-  LIBCAP_LIBDIR = "#{LIBCAP_DIR}/libcap"
-  LIBCAP_LIBFILE = libfile("#{LIBCAP_LIBDIR}/libcap")
+  def libcap_dir(b); "#{b.build_dir}/libcap-#{LIBCAP_VERSION}"; end
+  def libcap_libdir(b); "#{libcap_dir(b)}/libcap"; end
+  def libcap_libfile(b); libfile("#{libcap_libdir(b)}/libcap"); end
 
   task :clean do
-    FileUtils.rm_rf LIBCAP_DIR
+    FileUtils.rm_rf libcap_dir(build)
   end
 
   def run_command env, command
@@ -26,28 +26,30 @@ MRuby::Gem::Specification.new('mruby-capability') do |spec|
     end
   end
 
-  file LIBCAP_DIR do
-    FileUtils.mkdir_p File.dirname(LIBCAP_DIR)
-    run_command ENV, "git clone --depth=1 #{LIBCAP_CHECKOUT_URL} #{LIBCAP_DIR}"
-    run_command ENV, "cd #{LIBCAP_DIR} && git fetch origin -q --tags #{LIBCAP_TAG} && git checkout $(git rev-parse #{LIBCAP_TAG})"
+  file libcap_dir(build) do
+    FileUtils.mkdir_p File.dirname(libcap_dir(build))
+    unless File.exist?(libcap_dir(build))
+      run_command ENV, "git clone --depth=1 #{LIBCAP_CHECKOUT_URL} #{libcap_dir(build)}"
+      run_command ENV, "cd #{libcap_dir(build)} && git fetch origin -q --tags #{LIBCAP_TAG} && git checkout -q $(git rev-parse #{LIBCAP_TAG})"
+    end
   end
 
-  file LIBCAP_LIBFILE => LIBCAP_DIR do
-    Dir.chdir(LIBCAP_DIR) do
+  file libcap_libfile(build) => libcap_dir(build) do
+    Dir.chdir(libcap_dir(build)) do
       e = {
         'CC' => "#{build.cc.command} #{build.cc.flags.join(' ')}",
         'CXX' => "#{build.cxx.command} #{build.cxx.flags.join(' ')}",
         'LD' => "#{build.linker.command} #{build.linker.flags.join(' ')}",
         'AR' => build.archiver.command,
-        'prefix' => LIBCAP_LIBDIR,
+        'prefix' => libcap_libdir(build),
       }
 
       run_command e, "make"
     end
   end
 
-  file libfile("#{build.build_dir}/lib/libmruby") => LIBCAP_LIBFILE
+  file libfile("#{build.build_dir}/lib/libmruby") => libcap_libfile(build)
 
-  spec.cc.include_paths << "#{LIBCAP_LIBDIR}/include"
-  spec.linker.flags_before_libraries << LIBCAP_LIBFILE
+  spec.cc.include_paths << "#{libcap_libdir(build)}/include"
+  spec.linker.flags_before_libraries << libcap_libfile(build)
 end
