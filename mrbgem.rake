@@ -9,6 +9,8 @@ MRuby::Gem::Specification.new('mruby-capability') do |spec|
   unless defined?(LIBCAP_VERSION)
     LIBCAP_VERSION = "2.25"
     LIBCAP_TAG = "libcap-#{LIBCAP_VERSION}"
+    # tag libcap-2.25 is: https://kernel.googlesource.com/pub/scm/linux/kernel/git/morgan/libcap.git/+/libcap-2.25
+    LIBCAP_TARGET_COMMIT = "a0b240a1ead74be7851c98d58cc53c7c244ade58"
     LIBCAP_CHECKOUT_URL = "https://kernel.googlesource.com/pub/scm/linux/kernel/git/morgan/libcap.git"
   end
 
@@ -33,7 +35,7 @@ MRuby::Gem::Specification.new('mruby-capability') do |spec|
     FileUtils.mkdir_p File.dirname(libcap_dir(build))
     unless File.exist?(libcap_dir(build))
       run_command ENV, "git clone --depth=1 #{LIBCAP_CHECKOUT_URL} #{libcap_dir(build)}"
-      run_command ENV, "cd #{libcap_dir(build)} && git fetch origin -q && git checkout -q $(git rev-parse #{LIBCAP_TAG})"
+      run_command ENV, "cd #{libcap_dir(build)} && git fetch origin -q && git checkout -q #{LIBCAP_TARGET_COMMIT}"
 
       if `uname -r`.include? "2.6.32"
         # CentOS 6 patch
