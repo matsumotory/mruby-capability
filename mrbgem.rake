@@ -34,6 +34,12 @@ MRuby::Gem::Specification.new('mruby-capability') do |spec|
     unless File.exist?(libcap_dir(build))
       run_command ENV, "git clone --depth=1 #{LIBCAP_CHECKOUT_URL} #{libcap_dir(build)}"
       run_command ENV, "cd #{libcap_dir(build)} && git fetch origin -q && git checkout -q $(git rev-parse #{LIBCAP_TAG})"
+
+      if `uname -r`.include? "2.6.32"
+        # CentOS 6 patch
+        patch_path = File.expand_path('../misc/fix-centos6-build.patch', __FILE__)
+        run_command ENV, "cd #{libcap_dir(build)} && patch -p0 < #{patch_path}"
+      end
     end
   end
 
