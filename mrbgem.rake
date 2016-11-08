@@ -33,7 +33,7 @@ MRuby::Gem::Specification.new('mruby-capability') do |spec|
     FileUtils.mkdir_p File.dirname(libcap_dir(build))
     unless File.exist?(libcap_dir(build))
       run_command ENV, "git clone --depth=1 #{LIBCAP_CHECKOUT_URL} #{libcap_dir(build)}"
-      run_command ENV, "cd #{libcap_dir(build)} && git fetch origin -q --tags #{LIBCAP_TAG} && git checkout -q $(git rev-parse #{LIBCAP_TAG})"
+      run_command ENV, "cd #{libcap_dir(build)} && git fetch origin -q && git checkout -q $(git rev-parse #{LIBCAP_TAG})"
     end
   end
 
