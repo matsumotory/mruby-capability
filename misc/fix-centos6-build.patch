@@ -1,0 +1,13 @@
+--- libcap/cap_file.c  2016-11-08 02:16:56.039007980 +0900
++++ libcap/cap_file.c.patched  2016-11-08 02:21:21.671008014 +0900
+@@ -10,6 +10,10 @@
+ #include <unistd.h>
+ #include <linux/xattr.h>
+ 
++#ifndef XATTR_NAME_CAPS
++#define XATTR_NAME_CAPS "security.capability"
++#endif
++
+ /*
+  * We hardcode the prototypes for the Linux system calls here since
+  * there are no libcap library APIs that expose the user to these
