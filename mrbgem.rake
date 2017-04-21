@@ -17,6 +17,9 @@ MRuby::Gem::Specification.new('mruby-capability') do |spec|
   def libcap_dir(b); "#{b.build_dir}/libcap-#{LIBCAP_VERSION}"; end
   def libcap_libdir(b); "#{libcap_dir(b)}/libcap"; end
   def libcap_libfile(b); libfile("#{libcap_libdir(b)}/libcap"); end
+  def enable_ambient?(b)
+    b.cc.flags.flatten.include?('-DMRB_CAPABILITY_ENABLE_AMBIENT') || b.cc.defines.flatten.include?('MRB_CAPABILITY_ENABLE_AMBIENT')
+  end
 
   task :clean do
     FileUtils.rm_rf libcap_dir(build)
@@ -35,7 +38,9 @@ MRuby::Gem::Specification.new('mruby-capability') do |spec|
     FileUtils.mkdir_p File.dirname(libcap_dir(build))
     unless File.exist?(libcap_dir(build))
       run_command ENV, "git clone #{LIBCAP_CHECKOUT_URL} #{libcap_dir(build)}"
-      run_command ENV, "cd #{libcap_dir(build)} && git fetch origin -q && git checkout -q #{LIBCAP_TARGET_COMMIT}"
+      unless enable_ambient?(build)
+        run_command ENV, "cd #{libcap_dir(build)} && git fetch origin -q && git checkout -q #{LIBCAP_TARGET_COMMIT}"
+      end
 
       if `rpm -q kernel-headers || true`.include? "2.6.32"
         # CentOS 6 patch

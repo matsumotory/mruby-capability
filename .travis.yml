@@ -12,6 +12,7 @@ compiler:
 env:
   - MRUBY_VERSION=1.2.0
   - MRUBY_VERSION=master
+  - MRUBY_VERSION=master MRB_CAPABILITY_ENABLE_AMBIENT=1
 script:
   - rake clean
   - rake test
