@@ -105,7 +105,6 @@ mrb_value mrb_cap_set(mrb_state *mrb, mrb_value self)
   mrb_int identify;
 
   mrb_get_args(mrb, "iA", &identify, &ary);
-  struct RArray *a = mrb_ary_ptr(ary);
   int ncap = RARRAY_LEN(ary);
 
   for (i = 0; i < ncap; i++) {
@@ -140,7 +139,6 @@ mrb_value mrb_cap_clear(mrb_state *mrb, mrb_value self)
   mrb_int identify;
 
   mrb_get_args(mrb, "iA", &identify, &ary);
-  struct RArray *a = mrb_ary_ptr(ary);
   int ncap = RARRAY_LEN(ary);
 
   for (i = 0; i < ncap; i++) {
@@ -164,7 +162,6 @@ mrb_value mrb_cap_set_flag(mrb_state *mrb, mrb_value self)
   mrb_int state;
 
   mrb_get_args(mrb, "iAi", &identify, &ary, &state);
-  struct RArray *a = mrb_ary_ptr(ary);
   int ncap = RARRAY_LEN(ary);
 
   for (i = 0; i < ncap; i++) {
@@ -274,7 +271,6 @@ static mrb_value mrb_file_cap_set_file(mrb_state *mrb, mrb_value self)
   }
 
   mrb_get_args(mrb, "iA", &identify, &ary);
-  struct RArray *a = mrb_ary_ptr(ary);
   int ncap = RARRAY_LEN(ary);
 
   for (i = 0; i < ncap; i++) {
@@ -298,7 +294,6 @@ static mrb_value mrb_file_cap_clear(mrb_state *mrb, mrb_value self)
   mrb_int identify;
 
   mrb_get_args(mrb, "iA", &identify, &ary);
-  struct RArray *a = mrb_ary_ptr(ary);
   int ncap = RARRAY_LEN(ary);
 
   for (i = 0; i < ncap; i++) {
